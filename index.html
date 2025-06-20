@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Ranking App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000; /* Changed to black background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to give space for scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #ffffff; /* Changed default text color to white */
+        }
+        .container {
+            background-color: #1a1a1a; /* Dark gray for contrast with black body */
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5); /* Adjusted shadow for dark background */
+            max-width: 900px;
+            width: 100%;
+        }
+        .pokemon-input-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #333333; /* Darker border for dark theme */
+            position: relative; /* Needed for positioning suggestions-container */
+        }
+        .pokemon-input-row:last-child {
+            border-bottom: none;
+        }
+        .pokemon-input-row label {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1; /* Allow label to take available space */
+            color: #ffffff; /* Ensure label text is white */
+        }
+        /* Styling for the select dropdown */
+        .pokemon-point-select {
+            width: 80px; /* Adjusted width for dropdown */
+            padding: 0.5rem;
+            border: 1px solid #4a4a4a; /* Darker border */
+            border-radius: 0.5rem;
+            text-align: center;
+            background-color: #333333; /* Dark background for select */
+            color: #ffffff; /* White text for select */
+            appearance: none; /* Remove default browser styling */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white'%3E%3Cpath d='M7 7l3 3 3-3m0 6l-3-3-3 3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); /* Custom white arrow */
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1.5em;
+            cursor: pointer;
+        }
+
+        /* Styling for the searchable input */
+        .pokemon-search-input {
+            padding: 0.5rem;
+            border: 1px solid #4a4a4a; /* Darker border */
+            border-radius: 0.5rem;
+            flex-grow: 1; /* Allow input to grow */
+            margin-right: 0.5rem; /* Space between input and select */
+            width: 150px; /* Default width, will be flexible */
+            background-color: #333333; /* Dark background for input */
+            color: #ffffff; /* White text for input */
+        }
+        /* Placeholder text color for dark theme */
+        .pokemon-search-input::placeholder {
+            color: #b0b0b0;
+        }
+        .pokemon-search-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-grow: 1;
+            position: relative; /* For positioning the suggestions dropdown */
+        }
+        .pokemon-sprite-small {
+            width: 40px; /* Smaller sprite for input rows */
+            height: 40px;
+            margin-right: 0.5rem;
+        }
+
+        /* Styling for custom suggestion dropdown */
+        .suggestions-container {
+            position: absolute;
+            top: 100%; /* Position below the input */
+            left: 0;
+            right: 0;
+            z-index: 10; /* Ensure it appears above other elements */
+            background-color: #333333; /* Dark background for suggestions */
+            border: 1px solid #4a4a4a; /* Darker border */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Adjusted shadow */
+            max-height: 150px;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+        }
+        .suggestion-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #ffffff; /* White text for suggestions */
+        }
+        .suggestion-item:hover {
+            background-color: #555555; /* Slightly lighter hover for dark theme */
+        }
+
+        .submit-button {
+            background-image: linear-gradient(to right, #6EE7B7, #34D399);
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .submit-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .download-button {
+            background-image: linear-gradient(to right, #93C5FD, #60A5FA);
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 1.5rem;
+        }
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .download-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            display: block;
+            background-color: #2a2a2a; /* Darker background for canvas */
+            border-radius: 0.75rem;
+            margin-top: 2rem;
+            border: 1px solid #4a4a4a; /* Darker border */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Adjusted shadow */
+        }
+        h1, h2, p {
+            color: #ffffff !important; /* Ensure headings and paragraphs are white, using !important for strong override */
+        }
+        .text-gray-600 { /* Override specific tailwind classes for dark theme */
+            color: #b0b0b0 !important;
+        }
+        .text-gray-700 {
+            color: #e0e0e0 !important;
+        }
+        .text-indigo-600 {
+            color: #93c5fd !important; /* Adjusted for better contrast on dark */
+        }
+        .text-red-500 {
+            color: #fca5a5 !important; /* Adjusted for better contrast on dark */
+        }
+
+        /* Message Box */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #333333; /* Dark background for message box */
+            color: #ffffff; /* White text for message box */
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4); /* Adjusted shadow */
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        #messageBox h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #ffffff !important; /* Ensure title is white */
+        }
+        #messageBox p {
+            margin-bottom: 1.5rem;
+            color: #e0e0e0 !important; /* Light grey text for body */
+        }
+        #messageBox button {
+            background-color: #3B82F6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #overlay {
+            background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for dark theme */
+        }
+        /* Loading spinner */
+        .loader {
+            border: 4px solid #4a4a4a; /* Darker grey */
+            border-top: 4px solid #93C5FD; /* Lighter blue for visibility */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4 md:p-8">
+
+    <div class="container mx-auto p-8 rounded-2xl shadow-xl flex flex-col items-center">
+        <h1 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">PokePodium</h1>
+
+        <!-- Points Assignment Section -->
+        <div class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 mb-10 p-6 rounded-xl shadow-md">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Assign Your Points</h2>
+            <p class="text-lg text-gray-600 mb-6 text-center">
+                You have <span id="pointsRemaining" class="font-bold text-indigo-600">10</span> points to assign.
+                Use exactly 10 points across your selected Pokemon (at least one must be chosen!).
+            </p>
+
+            <div id="loadingIndicator" class="loader"></div>
+            <div id="pokemonInputsContainer" class="mb-8">
+                <!-- Pokemon selection rows will be generated here by JavaScript -->
+            </div>
+
+            <button id="submitBtn" class="submit-button w-full px-6 py-3 rounded-xl cursor-pointer text-center">
+                Create My Ranking Chart
+            </button>
+        </div>
+
+        <!-- Chart Display Section -->
+        <div class="w-full mb-10 p-6 rounded-xl shadow-md flex flex-col items-center">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Your Winner's Podium</h2>
+            <canvas id="chartCanvas" width="800" height="400" class="w-full max-w-full h-auto"></canvas>
+            <button id="downloadBtn" class="download-button px-6 py-3 rounded-xl cursor-pointer text-center">
+                Download Chart as Image
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Message Box -->
+    <div id="overlay"></div>
+    <div id="messageBox">
+        <h3 id="messageTitle"></h3>
+        <p id="messageText"></p>
+        <button id="messageCloseBtn">OK</button>
+    </div>
+
+    <script>
+        // --- Global Data Stores ---
+        let allPokemonData = []; // Stores fetched Pokemon data (name, sprite) as an array
+        let pokemonMap = new Map(); // For quick lookup: name -> {name, sprite}
+        let rankingSlots = []; // Manages the state of each of the 10 ranking slots
+        const numberOfSlots = 10;
+        let totalPoints = 10; // Total points available to assign
+
+        // --- DOM Element References ---
+        const pointsRemainingSpan = document.getElementById('pointsRemaining');
+        const pokemonInputsContainer = document.getElementById('pokemonInputsContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const chartCanvas = document.getElementById('chartCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const ctx = chartCanvas.getContext('2d');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageText = document.getElementById('messageText');
+        const messageCloseBtn = document.getElementById('messageCloseBtn');
+        const overlay = document.getElementById('overlay');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Displays a custom message box to the user instead of `alert()`.
+         * @param {string} title - The title of the message.
+         * @param {string} message - The main message text.
+         */
+        function showMessageBox(title, message) {
+            messageTitle.textContent = title;
+            messageText.textContent = message;
+            messageBox.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        // Event listener for the message box close button
+        messageCloseBtn.addEventListener('click', () => {
+            messageBox.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        /**
+         * Fetches a list of Pokemon names and their default sprites from PokeAPI.
+         * Populates the global `allPokemonData` array and `pokemonMap`.
+         * This version constructs sprite URLs without individual detail fetches.
+         */
+        async function fetchPokemonData() {
+            loadingIndicator.style.display = 'block'; // Show loading spinner
+            pokemonInputsContainer.style.display = 'none'; // Hide inputs during loading
+            try {
+                // Fetch ALL Pokemon (set limit to a very large number, e.g., 10000, as there are over 1000 Pokemon)
+                const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10000');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                for (const item of data.results) {
+                    // Extract ID from the URL (e.g., "https://pokeapi.co/api/v2/pokemon/1/" -> "1")
+                    const idMatch = item.url.match(/\/(\d+)\/$/);
+                    const pokemonId = idMatch ? idMatch[1] : null;
+
+                    let spriteUrl = "https://placehold.co/60x60/cccccc/000000?text=NA"; // Default fallback
+                    // Construct the sprite URL directly. Official PokeAPI sprites are hosted on raw.githubusercontent.com.
+                    // To avoid canvas tainting, these images need to be loaded with `crossOrigin = 'Anonymous'`.
+                    if (pokemonId) {
+                        spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+                    }
+
+                    const capitalizedName = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+                    const pokemonEntry = { name: capitalizedName, sprite: spriteUrl };
+
+                    allPokemonData.push(pokemonEntry);
+                    pokemonMap.set(capitalizedName, pokemonEntry); // Store in map for quick lookup
+                }
+                console.log("Pokemon data fetched and processed efficiently.");
+            } catch (error) {
+                console.error("Error fetching Pokemon data:", error);
+                showMessageBox("Error", "Failed to load Pokemon data. Please check your internet connection and try again later.");
+            } finally {
+                loadingIndicator.style.display = 'none'; // Hide loading spinner
+                pokemonInputsContainer.style.display = 'block'; // Show inputs after loading
+            }
+        }
+
+        /**
+         * Handles the 'input' event for a Pokemon search input.
+         * Filters Pokemon data and renders suggestions.
+         * @param {Event} event - The input event.
+         * @param {number} slotIndex - The index of the ranking slot.
+         */
+        function handleSearchInput(event, slotIndex) {
+            const inputElement = event.target;
+            const inputValue = inputElement.value.toLowerCase();
+            const suggestionsContainer = rankingSlots[slotIndex].suggestionsContainer;
+
+            // Clear previous suggestions
+            suggestionsContainer.innerHTML = '';
+
+            if (inputValue.length === 0) {
+                suggestionsContainer.style.display = 'none';
+                return;
+            }
+
+            const filteredPokemon = allPokemonData.filter(p =>
+                p.name.toLowerCase().includes(inputValue)
+            );
+
+            // Limit suggestions to prevent excessively long lists
+            const maxSuggestions = 10;
+            const suggestionsToShow = filteredPokemon.slice(0, maxSuggestions);
+
+
+            if (suggestionsToShow.length > 0) {
+                suggestionsToShow.forEach(pokemon => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'suggestion-item';
+                    suggestionItem.textContent = pokemon.name;
+                    // Use mousedown instead of click for instant selection, preventing blur
+                    suggestionItem.addEventListener('mousedown', (e) => {
+                        e.preventDefault(); // Prevent input from blurring immediately
+                        inputElement.value = pokemon.name;
+                        // Manually trigger change to update sprite and points
+                        handlePokemonSearchChange({ target: inputElement }, slotIndex);
+                        suggestionsContainer.style.display = 'none'; // Hide suggestions after selection
+                    });
+                    suggestionsContainer.appendChild(suggestionItem);
+                });
+                suggestionsContainer.style.display = 'block';
+            } else {
+                suggestionsContainer.style.display = 'none';
+            }
+        }
+
+        /**
+         * Handles the 'change' event for a Pokemon search input (when focus leaves or selection made).
+         * Updates the corresponding sprite and stores the selected Pokemon's name in the slot's state.
+         * @param {Event} event - The change event from the input.
+         * @param {number} slotIndex - The index of the ranking slot.
+         */
+        function handlePokemonSearchChange(event, slotIndex) {
+            const inputElement = event.target;
+            const selectedName = inputElement.value;
+            const pokemonEntry = pokemonMap.get(selectedName);
+            const spriteImg = rankingSlots[slotIndex].spriteElement;
+            const suggestionsContainer = rankingSlots[slotIndex].suggestionsContainer;
+
+
+            if (pokemonEntry) {
+                // Pokemon found, update sprite and store name
+                spriteImg.src = pokemonEntry.sprite;
+                rankingSlots[slotIndex].selectedPokemonName = pokemonEntry.name;
+            } else {
+                // Pokemon not found or invalid selection, clear sprite and name
+                spriteImg.src = "https://placehold.co/40x40/cccccc/000000?text=NA"; // Placeholder
+                rankingSlots[slotIndex].selectedPokemonName = '';
+            }
+            // Ensure the input value reflects the selected Pokemon if it's a valid one from the list
+            // Or clears it if it's not a valid selection
+            inputElement.value = rankingSlots[slotIndex].selectedPokemonName;
+            updatePointsRemaining(); // Recalculate points after a Pokemon selection might change
+            suggestionsContainer.style.display = 'none'; // Always hide suggestions on change/blur
+        }
+
+        /**
+         * Dynamically generates the 10 ranking slots with searchable Pokemon inputs and point picklists.
+         */
+        function generateRankingSlots() {
+            pokemonInputsContainer.innerHTML = ''; // Clear existing inputs
+            rankingSlots = []; // Reset ranking slots state
+
+            for (let i = 0; i < numberOfSlots; i++) {
+                const row = document.createElement('div');
+                row.className = 'pokemon-input-row';
+
+                // Container for search input and sprite
+                const searchContainer = document.createElement('div');
+                searchContainer.className = 'pokemon-search-container';
+
+                const spriteImg = document.createElement('img');
+                spriteImg.src = "https://placehold.co/40x40/cccccc/000000?text=NA"; // Default placeholder
+                spriteImg.alt = "Pokemon Sprite";
+                spriteImg.className = 'pokemon-sprite-small';
+                searchContainer.appendChild(spriteImg);
+
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'Search Pokemon...';
+                searchInput.className = 'pokemon-search-input';
+                // Attach 'input' listener for live filtering of suggestions
+                searchInput.addEventListener('input', (event) => handleSearchInput(event, i));
+                // Attach 'change' listener for when value is committed (blur or enter)
+                searchInput.addEventListener('change', (event) => handlePokemonSearchChange(event, i));
+                // Add blur listener to hide suggestions (with a small delay to allow click on suggestions)
+                searchInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        rankingSlots[i].suggestionsContainer.style.display = 'none';
+                    }, 100); // Small delay to allow click event on suggestion to fire
+                });
+                searchContainer.appendChild(searchInput);
+
+                // Add suggestions container for this input
+                const suggestionsContainer = document.createElement('div');
+                suggestionsContainer.className = 'suggestions-container';
+                searchContainer.appendChild(suggestionsContainer);
+
+                // Point assignment select
+                const pointSelect = document.createElement('select');
+                pointSelect.className = 'pokemon-point-select';
+                // Add options from 0 to 10
+                for (let j = 0; j <= 10; j++) {
+                    const option = document.createElement('option');
+                    option.value = j;
+                    option.textContent = j;
+                    pointSelect.appendChild(option);
+                }
+                pointSelect.value = '0'; // Default value
+                pointSelect.addEventListener('change', updatePointsRemaining); // Attach event listener
+
+                row.appendChild(searchContainer);
+                row.appendChild(pointSelect);
+                pokemonInputsContainer.appendChild(row);
+
+                // Store references and initial state for this slot
+                rankingSlots.push({
+                    selectedPokemonName: '', // Initially empty
+                    points: 0,
+                    spriteElement: spriteImg,
+                    searchInput: searchInput,
+                    pointSelect: pointSelect,
+                    suggestionsContainer: suggestionsContainer // Store reference to its own suggestions container
+                });
+            }
+        }
+
+        /**
+         * Updates the displayed remaining points based on user input.
+         * Only considers points from slots where a Pokemon has been selected.
+         */
+        function updatePointsRemaining() {
+            let assignedPoints = 0;
+            rankingSlots.forEach(slot => {
+                // Only count points if a valid Pokemon is selected for the slot
+                if (slot.selectedPokemonName && pokemonMap.has(slot.selectedPokemonName)) {
+                    slot.points = parseInt(slot.pointSelect.value) || 0; // Update points in state
+                    assignedPoints += slot.points;
+                } else {
+                    slot.points = 0; // Reset points if no valid Pokemon is selected
+                    slot.pointSelect.value = '0'; // Reset dropdown to 0
+                }
+            });
+
+            const remaining = totalPoints - assignedPoints;
+            pointsRemainingSpan.textContent = remaining;
+
+            // Visual feedback for points remaining
+            if (remaining < 0 || remaining > 0) {
+                pointsRemainingSpan.classList.remove('text-indigo-600');
+                pointsRemainingSpan.classList.add('text-red-500');
+            } else {
+                pointsRemainingSpan.classList.remove('text-red-500');
+                pointsRemainingSpan.classList.add('text-indigo-600');
+            }
+        }
+
+        /**
+         * Validates the user's point assignments and Pokemon selections.
+         * Allows flexible slot usage but requires at least one Pokemon and 10 total points.
+         * @returns {boolean} True if points and selections are valid, false otherwise.
+         */
+        function validateSelections() {
+            const activeSlots = rankingSlots.filter(slot =>
+                slot.selectedPokemonName && pokemonMap.has(slot.selectedPokemonName)
+            );
+
+            // 1. Check if at least one Pokemon is selected
+            if (activeSlots.length === 0) {
+                showMessageBox("Selection Error", "Please select at least one Pokemon to rank.");
+                return false;
+            }
+
+            let assignedPoints = 0;
+            const selectedNames = new Set(); // To check for duplicates among active slots
+
+            for (const slot of activeSlots) {
+                const pokemonName = slot.selectedPokemonName;
+                const points = slot.points;
+
+                // 2. Check for duplicate Pokemon among selected ones
+                if (selectedNames.has(pokemonName)) {
+                    showMessageBox("Duplicate Pokemon", `"${pokemonName}" has been selected more than once. Please choose unique Pokemon for each active slot.`);
+                    return false;
+                }
+                selectedNames.add(pokemonName);
+
+                assignedPoints += points;
+            }
+
+            // 3. Check total points for active slots
+            if (assignedPoints !== totalPoints) {
+                showMessageBox("Point Assignment Error", `You must use exactly ${totalPoints} points across your selected Pokemon. You have used ${assignedPoints}.`);
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Draws the bar chart on the canvas based on the user's selections.
+         * @param {Array<Object>} rankedPokemon - Array of Pokemon objects with their assigned points and sprite.
+         */
+        async function drawChart(rankedPokemon) {
+            // Set canvas size responsive to its container, maintaining aspect ratio
+            const containerWidth = chartCanvas.parentElement.clientWidth;
+            const desiredWidth = Math.min(containerWidth * 0.95, 800);
+            chartCanvas.width = desiredWidth;
+            chartCanvas.height = 400; // Fixed height for consistent bar scaling
+
+            // Clear canvas and fill with black background (now after canvas size is set)
+            ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            ctx.fillStyle = 'black'; /* Changed to black */
+            ctx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+            const barWidth = 60;
+            const spacing = 20; // Space between bars
+            const maxBarHeight = 250; // Max height for a bar representing 10 points
+            const groundLineY = chartCanvas.height - 50; // Y-coordinate for the base of the bars
+            const nameTextOffset = 20; // Offset for Pokemon name text below bars
+            const pointsTextOffset = 40; // Offset for points text below bars
+            const spriteSize = 60; // Size of the Pokemon sprite
+
+            // Load sprites - only for the selected Pokemon for the chart
+            const spriteImages = {};
+            const loadPromises = rankedPokemon.map(p => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous'; // Crucial for allowing toDataURL on cross-origin images
+                    img.src = p.sprite;
+                    img.onload = () => {
+                        spriteImages[p.name] = img;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        // Fallback for broken images, load a placeholder
+                        console.warn(`Failed to load sprite for ${p.name}. Using placeholder.`);
+                        img.src = `https://placehold.co/${spriteSize}x${spriteSize}/cccccc/000000?text=NA`;
+                        img.onload = () => {
+                            spriteImages[p.name] = img;
+                            resolve();
+                        }
+                    };
+                });
+            });
+            await Promise.all(loadPromises); // Wait for all sprites to load
+
+            // Sort the Pokemon for chart display based on the requirements
+            // 1. Sort by points descending, then name ascending
+            const sortedForLogic = [...rankedPokemon].sort((a, b) => {
+                if (b.points !== a.points) {
+                    return b.points - a.points;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            let displayOrder = [];
+            if (sortedForLogic.length > 0) {
+                const highest = sortedForLogic[0];
+                displayOrder.push(highest); // Highest will be centered
+
+                if (sortedForLogic.length > 1) {
+                    const secondHighest = sortedForLogic[1];
+                    displayOrder.unshift(secondHighest); // Second highest to its left
+                }
+                // Add remaining (from index 2 onwards) to the right
+                displayOrder = displayOrder.concat(sortedForLogic.slice(2));
+            }
+
+            // Calculate starting X position to center the bars
+            const totalWidthOfBars = displayOrder.length * barWidth + (displayOrder.length - 1) * spacing;
+            let startX = (chartCanvas.width - totalWidthOfBars) / 2;
+
+            // Draw bars
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff'; /* Changed to white for canvas text */
+
+            // Draw ground line
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(startX - spacing, groundLineY); // Extend line slightly past first bar
+            ctx.lineTo(startX + totalWidthOfBars + spacing, groundLineY); // Extend line slightly past last bar
+            ctx.stroke();
+
+
+            displayOrder.forEach((p, index) => {
+                const barHeight = (p.points / 10) * maxBarHeight;
+                const x = startX + index * (barWidth + spacing);
+                const y = groundLineY - barHeight;
+
+                // Draw bar
+                ctx.fillStyle = `hsl(${p.points * 36}, 70%, 50%)`; // Color based on points (0-10 maps to hue 0-360)
+                ctx.fillRect(x, y, barWidth, barHeight);
+
+                // Draw bar outline
+                ctx.strokeStyle = '#4a5568';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, barWidth, barHeight);
+
+                // Draw sprite above the bar
+                const spriteImg = spriteImages[p.name];
+                if (spriteImg) {
+                    ctx.drawImage(spriteImg, x + (barWidth - spriteSize) / 2, y - spriteSize - 10, spriteSize, spriteSize);
+                }
+
+                // Draw Pokemon name (with truncation for long names)
+                let displayName = p.name;
+                const maxTextWidth = barWidth - 4; // Give a small margin for text
+                ctx.font = '14px "Inter", sans-serif'; // Set font for name
+                let textWidth = ctx.measureText(displayName).width;
+
+                if (textWidth > maxTextWidth) {
+                    let ellipsis = '...';
+                    let tempName = displayName;
+                    while (textWidth > maxTextWidth && tempName.length > 0) {
+                        tempName = tempName.substring(0, tempName.length - 1);
+                        textWidth = ctx.measureText(tempName + ellipsis).width;
+                    }
+                    displayName = tempName + ellipsis;
+                }
+                ctx.fillStyle = '#ffffff'; /* Changed to white */
+                ctx.fillText(displayName, x + barWidth / 2, groundLineY + nameTextOffset);
+
+                // Draw points text
+                ctx.font = '12px "Inter", sans-serif'; // Slightly smaller font for points
+                ctx.fillText(`${p.points} pts`, x + barWidth / 2, groundLineY + pointsTextOffset);
+            });
+        }
+
+        // --- Event Listeners ---
+
+        submitBtn.addEventListener('click', () => {
+            if (validateSelections()) { // Use the new validation function
+                const rankedPokemon = rankingSlots.filter(slot =>
+                    slot.selectedPokemonName && pokemonMap.has(slot.selectedPokemonName)
+                ).map(slot => ({
+                    name: slot.selectedPokemonName,
+                    points: slot.points,
+                    sprite: pokemonMap.get(slot.selectedPokemonName)?.sprite || "https://placehold.co/60x60/cccccc/000000?text=NA" // Get sprite from map
+                }));
+                drawChart(rankedPokemon);
+            }
+        });
+
+        downloadBtn.addEventListener('click', () => {
+            if (chartCanvas.width === 0 || chartCanvas.height === 0) {
+                showMessageBox("Chart Not Ready", "Please create your ranking chart first before downloading.");
+                return;
+            }
+            try {
+                const image = chartCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = image;
+                link.download = 'pokemon_ranking_chart.png';
+                document.body.appendChild(link); // Append to DOM to make it clickable
+                link.click(); // Programmatically click the link
+                document.body.removeChild(link); // Remove after click
+            } catch (e) {
+                console.error("Error downloading chart:", e);
+                showMessageBox("Download Error", "Could not download the chart. This might be due to images not being fully loaded or a browser security restriction. Please try again.");
+            }
+        });
+
+        // --- Initialization ---
+        window.onload = async function() {
+            await fetchPokemonData(); // Fetch Pokemon data first
+            generateRankingSlots(); // Then generate the UI slots
+            updatePointsRemaining(); // Initialize the points display
+
+            // Handle canvas resizing for responsiveness
+            window.addEventListener('resize', () => {
+                // Only redraw if a chart has been generated and validated
+                const activeSlots = rankingSlots.filter(slot =>
+                    slot.selectedPokemonName && pokemonMap.has(slot.selectedPokemonName)
+                );
+                const assignedPoints = activeSlots.reduce((sum, slot) => sum + slot.points, 0);
+
+                if (activeSlots.length > 0 && assignedPoints === totalPoints) {
+                    const rankedPokemon = activeSlots.map(slot => ({
+                        name: slot.selectedPokemonName,
+                        points: slot.points,
+                        sprite: pokemonMap.get(slot.selectedPokemonName)?.sprite || "https://placehold.co/60x60/cccccc/000000?text=NA"
+                    }));
+                    drawChart(rankedPokemon);
+                }
+            });
+        };
+
+    </script>
+</body>
+</html>
