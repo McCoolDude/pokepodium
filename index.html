@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon Winner's Podium</title>
+    <title>PokePodium</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -254,8 +254,7 @@
 
         <!-- Chart Display Section -->
         <div class="w-full mb-10 p-6 rounded-xl shadow-md flex flex-col items-center">
-            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Your PokePodium</h2>
-            <!-- Description of ordering removed as requested -->
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 text-center">Your PokePodium!</h2>
             <canvas id="chartCanvas" width="800" height="400" class="w-full max-w-full h-auto"></canvas>
             <button id="downloadBtn" class="download-button px-6 py-3 rounded-xl cursor-pointer text-center">
                 Download Chart as Image
@@ -636,8 +635,7 @@
             });
             await Promise.all(loadPromises); // Wait for all sprites to load
 
-            // Sort the Pokemon for chart display based on the requirements
-            // 1. Sort by points descending, then name ascending
+            // Sort the Pokemon by points descending, then name ascending
             const sortedForLogic = [...rankedPokemon].sort((a, b) => {
                 if (b.points !== a.points) {
                     return b.points - a.points;
@@ -646,20 +644,34 @@
             });
 
             let displayOrder = [];
-            if (sortedForLogic.length > 0) {
-                const highest = sortedForLogic[0];
-                displayOrder.push(highest); // Highest will be centered
+            const leftSide = [];
+            const rightSide = [];
 
-                if (sortedForLogic.length > 1) {
-                    const secondHighest = sortedForLogic[1];
-                    displayOrder.unshift(secondHighest); // Second highest to its left
+            if (sortedForLogic.length > 0) {
+                // Highest ranked Pokemon (Rank #1) is always centered
+                displayOrder.push(sortedForLogic[0]);
+
+                for (let i = 1; i < sortedForLogic.length; i++) {
+                    // Check if rank (i+1) is even or odd
+                    if ((i + 1) % 2 === 0) { // Even ranks (2nd, 4th, etc.) go to the left side
+                        leftSide.push(sortedForLogic[i]);
+                    } else { // Odd ranks (3rd, 5th, etc.) go to the right side
+                        rightSide.push(sortedForLogic[i]);
+                    }
                 }
-                // Add remaining (from index 2 onwards) to the right
-                displayOrder = displayOrder.concat(sortedForLogic.slice(2));
             }
 
-            // Calculate starting X position to center the block of bars within the *newly calculated* canvas width
-            let startX = (chartCanvas.width - totalBarsAndSpacesWidth) / 2;
+            // Reverse the left side so that higher-ranked even Pokemon are closer to the center
+            leftSide.reverse();
+
+            // Construct the final display order: [even_ranks_reversed, highest_rank_1, odd_ranks]
+            displayOrder = [...leftSide, ...displayOrder, ...rightSide];
+
+
+            // Recalculate total width of bars and spacing based on the new `displayOrder`
+            const newTotalBarsAndSpacesWidth = displayOrder.length * barWidth + (displayOrder.length - 1) * spacing;
+            // Recalculate startX to center the newly ordered group of bars
+            startX = (chartCanvas.width - newTotalBarsAndSpacesWidth) / 2;
 
             // Draw bars
             ctx.textAlign = 'center';
@@ -671,7 +683,7 @@
             ctx.beginPath();
             // Extend line to cover the full width of the bar area plus padding
             ctx.moveTo(startX - (spacing / 2), groundLineY);
-            ctx.lineTo(startX + totalBarsAndSpacesWidth + (spacing / 2), groundLineY);
+            ctx.lineTo(startX + newTotalBarsAndSpacesWidth + (spacing / 2), groundLineY);
             ctx.stroke();
 
 
